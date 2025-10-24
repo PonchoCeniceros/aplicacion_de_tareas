@@ -144,3 +144,11 @@ El frontend está desarrollado en el stck MERN con Typescript, además de implem
 <p align="center">
   <img src="https://github.com/PonchoCeniceros/aplicacion_de_tareas/blob/main/app/.imgs/01.png" width="500">
 </p>
+
+<p align="center">
+  <img src="https://github.com/PonchoCeniceros/aplicacion_de_tareas/blob/main/app/.imgs/02.png" width="500">
+</p>
+
+<p align="center">
+  <img src="https://github.com/PonchoCeniceros/aplicacion_de_tareas/blob/main/app/.imgs/03.png" width="500">
+</p>
