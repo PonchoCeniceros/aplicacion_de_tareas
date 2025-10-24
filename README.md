@@ -1,6 +1,12 @@
 # aplicacion_de_tareas
 
-El siguiente proyecto es un desarrollo full stack para gestionar una lista de tareas. Esta desarrollado en el stck MERN con Typescript y sigue de forma general los preceptos de la arquitectura limpia. 
+El siguiente proyecto es un desarrollo full stack para gestionar una lista de tareas. Esta desarrollado en el stck MERN con Typescript y sigue de forma general los preceptos de la arquitectura limpia.
+
+## requisitos para el proyecto:
+
+1. nodejs
+2. npm
+3. mongodb
 
 ## API
 La estructura del directorio `src` en el backend refleja las capas de `Infraestructura -> Aplicación -> Dominio`:
