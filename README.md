@@ -142,7 +142,7 @@ se levanta una instancia de AWS Lightsail con Ubuntu, y se instalan la s siguien
 docker
 ```
 
-después se crea una zona DNS en AWS, y se enlazan los registros DNS al dominio requerido:
+Después se crea una zona DNS en AWS, y se enlazan los registros DNS al dominio requerido:
 
 <p align="center">
   <img src="https://github.com/PonchoCeniceros/aplicacion_de_tareas/blob/main/api/.imgs/dominio_1.png" width="500">
@@ -152,7 +152,7 @@ después se crea una zona DNS en AWS, y se enlazan los registros DNS al dominio 
   <img src="https://github.com/PonchoCeniceros/aplicacion_de_tareas/blob/main/api/.imgs/dominio_2.png" width="500">
 </p>
 
-la zona DNS se enlaza con el VPS:
+La zona DNS se enlaza con el VPS:
 
 <p align="center">
   <img src="https://github.com/PonchoCeniceros/aplicacion_de_tareas/blob/main/api/.imgs/dominio_3.png" width="500">
@@ -165,11 +165,11 @@ la zona DNS se enlaza con el VPS:
   <img src="https://github.com/PonchoCeniceros/aplicacion_de_tareas/blob/main/api/.imgs/ssl_2.png" width="500">
 </p>
 
-al finalizar el proceso, se descargan los certificados.
+Al finalizar el proceso, se descargan los certificados.
 
 ### API
 
-se procede a descargar el proyecto de la API desde el repositorio de GitHub, teniendo en cuenta los siguientes archivos de configuración: 
+Se procede a descargar el proyecto de la API desde el repositorio de GitHub, teniendo en cuenta los siguientes archivos de configuración: 
 `.env`
 ```
 # === GENERALES ===
@@ -236,7 +236,7 @@ volumes:
     driver: local
 ```
 
-con esto listo, se compilan los contenedores de docker:
+Con esto listo, se compilan los contenedores de docker:
 
 ```
 sudo docker compose down && sudo docker compose up --build -d
@@ -252,12 +252,13 @@ a6a74a096b37   api_de_tareas-todo_api   "docker-entrypoint.s…"   53 minutes ag
 1677cf068610   mongo:5                  "docker-entrypoint.s…"   53 minutes ago   Up 53 minutes   0.0.0.0:27016->27016/tcp, [::]:27016->27016/tcp, 27017/tcp   api_de_tareas-mongo_container-1
 ```
 
-
-ahora se cargaran los certificados SSL. Primero se concatenan los certificados:
+Ahora se cargaran los certificados SSL. Primero se concatenan los certificados:
 
 ```
 cat certificate.crt ca_bundle.crt > full_chain.pem
-```  Y se colocan los archivos en las siguientes direcciones en sistema:
+```
+
+Y se colocan los archivos en las siguientes direcciones en sistema:
 
 ```
 /etc/ssl/ponchoceniceros/private.key /etc/ssl/ponchoceniceros/full_chain.pem
@@ -273,18 +274,15 @@ npm run build
 
 Teniendo en cuenta el archivo `.env`:
 
-```
-VITE_API_URL=https://ponchoceniceros.com.mx/0.0.1
-```
+`VITE_API_URL=https://ponchoceniceros.com.mx/0.0.1`
 
 y mediente la herramienta filezilla, se coloca el directorio `dist/` en la ruta `/var/www/html/app_de_tareas`.
 
 ### Web server
-
 Se realiza la siguiente configuración del servidor web `nginx` en `/etc/nginx/sites-available/default`:
 
 
-```
+```nginx
 #
 # DOMINIO CON SSL Y FRONTEND
 #
