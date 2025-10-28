@@ -1,12 +1,6 @@
 # aplicacion_de_tareas
 
-El siguiente proyecto es un desarrollo full stack para gestionar una lista de tareas. Esta desarrollado en el stck MERN con Typescript y sigue de forma general los preceptos de la arquitectura limpia.
-
-## requisitos para el proyecto:
-
-1. nodejs
-2. npm
-3. mongodb
+El siguiente proyecto es un desarrollo full stack para gestionar una lista de tareas. Esta desarrollado en el stck MERN con Typescript y sigue de forma general los preceptos de la arquitectura limpia. 
 
 ## API
 La estructura del directorio `src` en el backend refleja las capas de `Infraestructura -> Aplicación -> Dominio`:
@@ -140,6 +134,174 @@ El frontend está desarrollado en el stck MERN con Typescript, además de implem
     ```bash
     npm run build
     ```
+## Puesta en producción  
+### VPS/Dominio/SSL
+
+se levanta una instancia de AWS Lightsail con Ubuntu, y se instalan la s siguientes depdendencias: 
+``` nodejs
+docker
+```
+
+después se crea una zona DNS en AWS, y se enlazan los registros DNS al dominio requerido:
+
+<p align="center">
+  <img src="https://github.com/PonchoCeniceros/aplicacion_de_tareas/blob/main/api/.imgs/dominio_1.png" width="500">
+</p>
+
+<p align="center">
+  <img src="https://github.com/PonchoCeniceros/aplicacion_de_tareas/blob/main/api/.imgs/dominio_2.png" width="500">
+</p>
+
+la zona DNS se enlaza con el VPS:
+
+<p align="center">
+  <img src="https://github.com/PonchoCeniceros/aplicacion_de_tareas/blob/main/api/.imgs/dominio_3.png" width="500">
+</p>  para el certificado SSL, este se genera desde un servicio certificador, y se comprueba la poseción del dominio mediante un registro CNAME solicitado por la certificadora:
+
+<p align="center">
+  <img src="https://github.com/PonchoCeniceros/aplicacion_de_tareas/blob/main/api/.imgs/ssl_1.png" width="500">
+</p> 
+<p align="center">
+  <img src="https://github.com/PonchoCeniceros/aplicacion_de_tareas/blob/main/api/.imgs/ssl_2.png" width="500">
+</p>
+
+al finalizar el proceso, se descargan los certificados.
+
+### API
+
+se procede a descargar el proyecto de la API desde el repositorio de GitHub, teniendo en cuenta los siguientes archivos de configuración: 
+`.env`
+```
+# === GENERALES ===
+# Título y descripción para la documentación de la API
+TITLE=API de Tareas
+DESCRIPTION=API para el manejo de tareas
+VERSION=0.0.1
+API_URL=http://localhost:3008/0.0.1
+
+# === CONFIGURACIONES BACKEND NODEJS ===
+# Puerto en el que correrá el servidor
+PORT=3008
+# Entorno de desarrollo (development, production, etc.)
+NODE_ENV=production
+
+# === CREDENCIALES JWT ===
+# Clave secreta para firmar los JSON Web Tokens
+SECRET_KEY=2vsvx8-HoH45q-4eXzOW-K9bOWp
+# Número de rondas de salt para el hash de contraseñas con bcrypt
+SALT_ROUNDS=10
+
+# === CREDENCIALES DE INFRAESTRUCTURA ===
+# URI de conexión a la base de datos MongoDB
+MONGO_DB_URL=mongodb://admin:Qh06q09setjx@mongo_container:27016/test_db?authSource=admin
+
+# === FRONTEND Y CORS ===
+# URL del frontend permitida para realizar peticiones (CORS)
+# FRONTEND_AVAILABLE_URL=http://98.85.105.110
+FRONTEND_AVAILABLE_URL=http://ponchoceniceros.com.mx
+```
+
+`docker-compose.yml`
+```
+version: '3'
+services:
+  todo_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - MONGO_URI=mongodb://admin:Qh06q09setjx@mongo_container:27016/test_db?authSource=admin
+    ports:
+      - "3008:3008"
+    depends_on:
+      - mongo_container
+    volumes:
+      - ./logs:/usr/src/api/logs
+
+  mongo_container:
+    image: mongo:5
+    ports:
+      - "27016:27016"
+    command: ["mongod", "--port", "27016"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: Qh06q09setjx
+    volumes:
+      - sales_data:/data/db
+
+volumes:
+  sales_data:
+    driver: local
+```
+
+con esto listo, se compilan los contenedores de docker:
+
+```
+sudo docker compose down && sudo docker compose up --build -d
+sudo docker ps
+```
+
+y se observan los contenedores montados correctamente:
+
+```
+CONTAINER ID   IMAGE                    COMMAND                  CREATED          STATUS          PORTS                                                        NAMES
+a6a74a096b37   api_de_tareas-todo_api   "docker-entrypoint.s…"   53 minutes ago   Up 53 minutes   0.0.0.0:3008->3008/tcp, [::]:3008->3008/tcp                  api_de_tareas-todo_api-1
+
+1677cf068610   mongo:5                  "docker-entrypoint.s…"   53 minutes ago   Up 53 minutes   0.0.0.0:27016->27016/tcp, [::]:27016->27016/tcp, 27017/tcp   api_de_tareas-mongo_container-1
+```
+
+
+ahora se cargaran los certificados SSL. Primero se concatenan los certificados:
+
+```
+cat certificate.crt ca_bundle.crt > full_chain.pem
+```  Y se colocan los archivos en las siguientes direcciones en sistema:
+
+```
+/etc/ssl/ponchoceniceros/private.key /etc/ssl/ponchoceniceros/full_chain.pem
+```
+
+### App
+
+Se compila el proyecto de frontend en local mediante:
+
+```
+npm run build
+```
+
+Teniendo en cuenta el archivo `.env`:
+
+```
+VITE_API_URL=https://ponchoceniceros.com.mx/0.0.1
+```
+
+y mediente la herramienta filezilla, se coloca el directorio `dist/` en la ruta `/var/www/html/app_de_tareas`.
+
+### Web server
+
+Se realiza la siguiente configuración del servidor web `nginx` en `/etc/nginx/sites-available/default`:
+
+
+```
+#
+# DOMINIO CON SSL Y FRONTEND
+#
+server {
+    listen 443 ssl;
+    ssl_certificate      /etc/ssl/ponchoceniceros/full_chain.pem;
+    ssl_certificate_key  /etc/ssl/ponchoceniceros/private.key;
+    server_name ponchoceniceros.com.mx;
+
+    root /var/www/html/app_de_tareas/dist;
+    index index.html;
+
+    location /0.0.1/ {
+        proxy_pass http://localhost:3008/;
+    }
+}
+```
 
 ## Imagenes del proyecto
 
